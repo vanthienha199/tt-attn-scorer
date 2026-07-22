@@ -8,7 +8,7 @@ import os
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, FallingEdge, RisingEdge, Timer
+from cocotb.triggers import ClockCycles, FallingEdge, RisingEdge
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -48,9 +48,10 @@ async def test_scorer_conformance(dut):
             dut.ui_in.value = int(data_s, 16)
             dut.uio_in.value = int(cmd_s, 16) & 0x3
             await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
-            got = int(dut.uo_out.value)
+            # Sample half a period after the edge so gate-level clock-tree and
+            # buffer delays have settled (1 ns is enough for RTL but not GL).
             await FallingEdge(dut.clk)
+            got = int(dut.uo_out.value)
         want = int(exp, 16)
         if got != want:
             mismatches += 1
