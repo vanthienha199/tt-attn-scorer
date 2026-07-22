@@ -3,96 +3,138 @@
    use(m5-1.0)
 \SV
    module tt_um_hale_attn_scorer (
-     input  wire [7:0] ui_in,
-     output wire [7:0] uo_out,
-     input  wire [7:0] uio_in,
-     output wire [7:0] uio_out,
-     output wire [7:0] uio_oe,
-     input  wire       ena,
-     input  wire       clk,
-     input  wire       rst_n
-   );
+     input  wire [7:0] ui_in,  output wire [7:0] uo_out,
+     input  wire [7:0] uio_in, output wire [7:0] uio_out, output wire [7:0] uio_oe,
+     input  wire ena, input wire clk, input wire rst_n);
    assign uio_out = 8'b0;
    assign uio_oe  = 8'b0;
    wire reset = ~rst_n;
 \TLV
    |scorer
-      @0
-         // Inputs
-         $cmd[1:0]        = *uio_in[1:0];
-         $data[7:0]       = *ui_in;
+      @1
+         $cmd[1:0]  = *uio_in[1:0];
+         $data[7:0] = *ui_in;
 
-         // Command decode
-         $is_idle         = ($cmd == 2'b00);
-         $is_load_q       = ($cmd == 2'b01);
-         $is_stream_k     = ($cmd == 2'b10);
-         $is_read         = ($cmd == 2'b11);
+         // Selected query element based on current dim
+         $qsel[7:0] =
+            ($dim[2:0] == 3'h0) ? $q0 :
+            ($dim[2:0] == 3'h1) ? $q1 :
+            ($dim[2:0] == 3'h2) ? $q2 :
+            ($dim[2:0] == 3'h3) ? $q3 :
+            ($dim[2:0] == 3'h4) ? $q4 :
+            ($dim[2:0] == 3'h5) ? $q5 :
+            ($dim[2:0] == 3'h6) ? $q6 :
+                                  $q7;
 
-         // Query buffer: 8 separate flops
-         $qsel[7:0]       = ($dim == 0) ? $q0 : ($dim == 1) ? $q1 : ($dim == 2) ? $q2 : ($dim == 3) ? $q3 :
-                            ($dim == 4) ? $q4 : ($dim == 5) ? $q5 : ($dim == 6) ? $q6 : $q7;
-         $load_q_write    = $is_load_q;
-         $q_idx[2:0]      = ($qfill >= 8) ? 3'b0 : $qfill[2:0];
+         // Multiply (int8 x int8 -> int16) and saturating add
+         $prod[15:0] = \$signed($qsel[7:0]) * \$signed($data[7:0]);
+         $sum_full[16:0] = {$acc[15], $acc[15:0]} + {$prod[15], $prod[15:0]};
+         $sat_sum[15:0] =
+            ($sum_full[16:15] == 2'b01) ? 16'h7FFF :
+            ($sum_full[16:15] == 2'b10) ? 16'h8000 :
+            $sum_full[15:0];
 
-         // qfill (next state)
-         $qfill_next[3:0] = *reset ? 4'b0 :
-                            $is_load_q ? (($qfill >= 8) ? 4'd1 : $qfill + 1'd1) :
-                            ($qfill < 8) ? 4'b0 : $qfill;
+         // Conditions
+         $is_load_q   = ($cmd == 2'h1);
+         $is_stream_k = ($cmd == 2'h2);
+         $is_idle     = ($cmd == 2'h0);
+         $q_complete  = ($qfill[3:0] == 4'h8);
+         $key_in_range = ($key_idx[6:0] <= 7'h3F);
 
-         // Query byte loading
-         <<1$q0[7:0]      = *reset ? 8'b0 : ($load_q_write && $q_idx == 0) ? $data : $q0;
-         <<1$q1[7:0]      = *reset ? 8'b0 : ($load_q_write && $q_idx == 1) ? $data : $q1;
-         <<1$q2[7:0]      = *reset ? 8'b0 : ($load_q_write && $q_idx == 2) ? $data : $q2;
-         <<1$q3[7:0]      = *reset ? 8'b0 : ($load_q_write && $q_idx == 3) ? $data : $q3;
-         <<1$q4[7:0]      = *reset ? 8'b0 : ($load_q_write && $q_idx == 4) ? $data : $q4;
-         <<1$q5[7:0]      = *reset ? 8'b0 : ($load_q_write && $q_idx == 5) ? $data : $q5;
-         <<1$q6[7:0]      = *reset ? 8'b0 : ($load_q_write && $q_idx == 6) ? $data : $q6;
-         <<1$q7[7:0]      = *reset ? 8'b0 : ($load_q_write && $q_idx == 7) ? $data : $q7;
-         <<1$qfill[3:0]   = $qfill_next;
+         // For STREAM_K: accumulate if key index in range
+         $do_accumulate = $is_stream_k && $key_in_range;
+         $dim_complete  = ($dim[2:0] == 3'h7);
+         $key_done      = $do_accumulate && $dim_complete;
+         $new_is_better = \$signed($sat_sum) > \$signed($best[15:0]);
 
-         // Load complete detection (resets best/idx/key_idx)
-         $load_complete    = $is_load_q && ($qfill == 7);
+         // Write index for LOAD_Q
+         // When qfill==8, the next write restarts at index 0
+         $wr_idx[2:0] = ($qfill[3:0] == 4'h8) ? 3'h0 : $qfill[2:0];
 
-         // Accumulator and dimension
-         $reset_acc_dim   = $is_load_q || $is_idle;
-         $inc_dim         = $is_stream_k && ($key_idx <= 63);
-         $prod[15:0]      = \$signed($qsel) * \$signed($data);
-         $acc_temp[16:0]  = \$signed($acc) + \$signed($prod);
-         $acc_full[15:0]  = ($acc_temp[16:15] == 2'b01) ? 16'h7FFF :
-                            ($acc_temp[16:15] == 2'b10) ? 16'h8000 : $acc_temp[15:0];
-         $dim_next[3:0]   = *reset ? 4'b0 :
-                            ($reset_acc_dim || ($inc_dim && $dim == 7)) ? 4'b0 :
-                            $inc_dim ? $dim + 1'd1 : $dim;
-         $acc_next[15:0]  = *reset ? 16'b0 :
-                            ($reset_acc_dim || ($inc_dim && $dim == 7)) ? 16'b0 :
-                            $inc_dim ? $acc_full : $acc;
-         <<1$dim[3:0]     = $dim_next;
-         <<1$acc[15:0]    = $acc_next;
+         // Is this the 8th LOAD_Q byte completing the query?
+         // qfill goes 7->8 on this cycle
+         $completing_q = $is_load_q && ($qfill[3:0] == 4'h7);
 
-         // Key index, best score, best index
-         $key_idx_next[5:0] = *reset ? 6'b0 :
-                              $load_complete ? 6'b0 :
-                              ($inc_dim && $dim == 7 && $key_idx <= 63) ? ($key_idx + 1'd1) : $key_idx;
-         $best_next[15:0]   = *reset ? 16'h8000 : // -32768
-                              $load_complete ? 16'h8000 :
-                              ($inc_dim && $dim == 7 && $key_idx <= 63 && (\$signed($acc_full) > \$signed($best))) ? $acc_full : $best;
-         $best_idx_next[5:0] = *reset ? 6'b0 :
-                               $load_complete ? 6'b0 :
-                               ($inc_dim && $dim == 7 && $key_idx <= 63 && (\$signed($acc_full) > \$signed($best))) ? $key_idx : $best_idx;
-         <<1$key_idx[5:0]    = $key_idx_next;
-         <<1$best[15:0]      = $best_next;
-         <<1$best_idx[5:0]   = $best_idx_next;
+         // Next qfill
+         // LOAD_Q: if qfill==8, restart at 1; else increment
+         // STREAM_K or IDLE: if partial query (qfill<8), reset to 0; else keep
+         $qfill_nxt[3:0] =
+            $is_load_q ?
+               (($qfill == 4'h8) ? 4'h1 : ($qfill + 4'h1)) :
+            ($is_stream_k || $is_idle) ?
+               (($qfill < 4'h8) ? 4'h0 : $qfill) :
+            $qfill;
 
-         // Read phase and output
-         $read_phase_next[1:0] = *reset ? 2'b0 :
-                                 $is_read ? (($read_phase == 2) ? 2'b0 : $read_phase + 1'd1) : 2'b0;
-         $out_next[7:0]        = *reset ? 8'b0 :
-                                 $is_read ? (($read_phase == 2'b00) ? $best_idx[5:0] :
-                                             ($read_phase == 2'b01) ? $best[15:8] : $best[7:0]) : $out;
-         <<1$read_phase[1:0]   = $read_phase_next;
-         <<1$out[7:0]          = $out_next;
+         // Next dim
+         // LOAD_Q or IDLE: reset dim to 0 (discard partial key)
+         // STREAM_K: if accumulating, increment; wrap on key_done
+         $dim_nxt[2:0] =
+            ($is_load_q || $is_idle) ? 3'h0 :
+            $do_accumulate ?
+               ($dim_complete ? 3'h0 : ($dim + 3'h1)) :
+            $dim;
 
-         // Output assignment
+         // Next acc
+         // LOAD_Q or IDLE: reset acc to 0 (discard partial key)
+         // STREAM_K: if accumulating, use sat_sum; on key_done reset to 0
+         $acc_nxt[15:0] =
+            ($is_load_q || $is_idle) ? 16'h0000 :
+            $do_accumulate ?
+               ($dim_complete ? 16'h0000 : $sat_sum) :
+            $acc;
+
+         // Next best
+         // Completing query (8th LOAD_Q): reset to -32768
+         // Key done and new best: update
+         $best_nxt[15:0] =
+            $completing_q ? 16'h8000 :
+            ($key_done && $new_is_better) ? $sat_sum :
+            $best;
+
+         // Next best_idx
+         $best_idx_nxt[5:0] =
+            $completing_q ? 6'h00 :
+            ($key_done && $new_is_better) ? $key_idx[5:0] :
+            $best_idx;
+
+         // Next key_idx
+         $key_idx_nxt[6:0] =
+            $completing_q ? 7'h00 :
+            $key_done ? ($key_idx + 7'h01) :
+            $key_idx;
+
+         // Next read_phase
+         $read_phase_nxt[1:0] =
+            ($cmd == 2'h3) ?
+               ($read_phase == 2'h2 ? 2'h0 : $read_phase + 2'h1) :
+            2'h0;
+
+         // Next out
+         $out_nxt[7:0] =
+            ($cmd == 2'h3) ?
+               (($read_phase == 2'h0) ? {2'b00, $best_idx[5:0]} :
+                ($read_phase == 2'h1) ? $best[15:8] :
+                                        $best[7:0]) :
+            $out;
+
+         // Flopped state
+         <<1$q0[7:0]         = *reset ? 8'h00 : ($is_load_q && $wr_idx == 3'h0) ? $data : $q0;
+         <<1$q1[7:0]         = *reset ? 8'h00 : ($is_load_q && $wr_idx == 3'h1) ? $data : $q1;
+         <<1$q2[7:0]         = *reset ? 8'h00 : ($is_load_q && $wr_idx == 3'h2) ? $data : $q2;
+         <<1$q3[7:0]         = *reset ? 8'h00 : ($is_load_q && $wr_idx == 3'h3) ? $data : $q3;
+         <<1$q4[7:0]         = *reset ? 8'h00 : ($is_load_q && $wr_idx == 3'h4) ? $data : $q4;
+         <<1$q5[7:0]         = *reset ? 8'h00 : ($is_load_q && $wr_idx == 3'h5) ? $data : $q5;
+         <<1$q6[7:0]         = *reset ? 8'h00 : ($is_load_q && $wr_idx == 3'h6) ? $data : $q6;
+         <<1$q7[7:0]         = *reset ? 8'h00 : ($is_load_q && $wr_idx == 3'h7) ? $data : $q7;
+         <<1$qfill[3:0]      = *reset ? 4'h0     : $qfill_nxt;
+         <<1$dim[2:0]        = *reset ? 3'h0     : $dim_nxt;
+         <<1$acc[15:0]       = *reset ? 16'h0000 : $acc_nxt;
+         <<1$best[15:0]      = *reset ? 16'h8000 : $best_nxt;
+         <<1$best_idx[5:0]   = *reset ? 6'h00    : $best_idx_nxt;
+         <<1$key_idx[6:0]    = *reset ? 7'h00    : $key_idx_nxt;
+         <<1$read_phase[1:0] = *reset ? 2'h0     : $read_phase_nxt;
+         <<1$out[7:0]        = *reset ? 8'h00    : $out_nxt;
+
          *uo_out = $out;
 \SV
    endmodule

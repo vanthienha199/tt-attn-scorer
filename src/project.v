@@ -2,15 +2,9 @@
 //_\source scorer.tlv 3
 //_\SV
    module tt_um_hale_attn_scorer (
-     input  wire [7:0] ui_in,
-     output wire [7:0] uo_out,
-     input  wire [7:0] uio_in,
-     output wire [7:0] uio_out,
-     output wire [7:0] uio_oe,
-     input  wire       ena,
-     input  wire       clk,
-     input  wire       rst_n
-   );
+     input  wire [7:0] ui_in,  output wire [7:0] uo_out,
+     input  wire [7:0] uio_in, output wire [7:0] uio_out, output wire [7:0] uio_oe,
+     input  wire ena, input wire clk, input wire rst_n);
    assign uio_out = 8'b0;
    assign uio_oe  = 8'b0;
    wire reset = ~rst_n;
@@ -31,137 +25,143 @@
 //
 
 // For |scorer$acc.
-logic [15:0] SCORER_acc_n1,
-             SCORER_acc_a0;
+logic [15:0] SCORER_acc_a0,
+             SCORER_acc_a1;
 
-// For |scorer$acc_full.
-logic [15:0] SCORER_acc_full_a0;
-
-// For |scorer$acc_next.
-logic [15:0] SCORER_acc_next_a0;
-
-// For |scorer$acc_temp.
-logic [16:0] SCORER_acc_temp_a0;
+// For |scorer$acc_nxt.
+logic [15:0] SCORER_acc_nxt_a1;
 
 // For |scorer$best.
-logic [15:0] SCORER_best_n1,
-             SCORER_best_a0;
+logic [15:0] SCORER_best_a0,
+             SCORER_best_a1;
 
 // For |scorer$best_idx.
-logic [5:0] SCORER_best_idx_n1,
-            SCORER_best_idx_a0;
+logic [5:0] SCORER_best_idx_a0,
+            SCORER_best_idx_a1;
 
-// For |scorer$best_idx_next.
-logic [5:0] SCORER_best_idx_next_a0;
+// For |scorer$best_idx_nxt.
+logic [5:0] SCORER_best_idx_nxt_a1;
 
-// For |scorer$best_next.
-logic [15:0] SCORER_best_next_a0;
+// For |scorer$best_nxt.
+logic [15:0] SCORER_best_nxt_a1;
 
 // For |scorer$cmd.
-logic [1:0] SCORER_cmd_a0;
+logic [1:0] SCORER_cmd_a1;
+
+// For |scorer$completing_q.
+logic SCORER_completing_q_a1;
 
 // For |scorer$data.
-logic [7:0] SCORER_data_a0;
+logic [7:0] SCORER_data_a1;
 
 // For |scorer$dim.
-logic [3:0] SCORER_dim_n1,
-            SCORER_dim_a0;
+logic [2:0] SCORER_dim_a0,
+            SCORER_dim_a1;
 
-// For |scorer$dim_next.
-logic [3:0] SCORER_dim_next_a0;
+// For |scorer$dim_complete.
+logic SCORER_dim_complete_a1;
 
-// For |scorer$inc_dim.
-logic SCORER_inc_dim_a0;
+// For |scorer$dim_nxt.
+logic [2:0] SCORER_dim_nxt_a1;
+
+// For |scorer$do_accumulate.
+logic SCORER_do_accumulate_a1;
 
 // For |scorer$is_idle.
-logic SCORER_is_idle_a0;
+logic SCORER_is_idle_a1;
 
 // For |scorer$is_load_q.
-logic SCORER_is_load_q_a0;
-
-// For |scorer$is_read.
-logic SCORER_is_read_a0;
+logic SCORER_is_load_q_a1;
 
 // For |scorer$is_stream_k.
-logic SCORER_is_stream_k_a0;
+logic SCORER_is_stream_k_a1;
+
+// For |scorer$key_done.
+logic SCORER_key_done_a1;
 
 // For |scorer$key_idx.
-logic [5:0] SCORER_key_idx_n1,
-            SCORER_key_idx_a0;
+logic [6:0] SCORER_key_idx_a0,
+            SCORER_key_idx_a1;
 
-// For |scorer$key_idx_next.
-logic [5:0] SCORER_key_idx_next_a0;
+// For |scorer$key_idx_nxt.
+logic [6:0] SCORER_key_idx_nxt_a1;
 
-// For |scorer$load_complete.
-logic SCORER_load_complete_a0;
+// For |scorer$key_in_range.
+logic SCORER_key_in_range_a1;
 
-// For |scorer$load_q_write.
-logic SCORER_load_q_write_a0;
+// For |scorer$new_is_better.
+logic SCORER_new_is_better_a1;
 
 // For |scorer$out.
-logic [7:0] SCORER_out_n1,
-            SCORER_out_a0;
+logic [7:0] SCORER_out_a0,
+            SCORER_out_a1;
 
-// For |scorer$out_next.
-logic [7:0] SCORER_out_next_a0;
+// For |scorer$out_nxt.
+logic [7:0] SCORER_out_nxt_a1;
 
 // For |scorer$prod.
-logic [15:0] SCORER_prod_a0;
+logic [15:0] SCORER_prod_a1;
 
 // For |scorer$q0.
-logic [7:0] SCORER_q0_n1,
-            SCORER_q0_a0;
+logic [7:0] SCORER_q0_a0,
+            SCORER_q0_a1;
 
 // For |scorer$q1.
-logic [7:0] SCORER_q1_n1,
-            SCORER_q1_a0;
+logic [7:0] SCORER_q1_a0,
+            SCORER_q1_a1;
 
 // For |scorer$q2.
-logic [7:0] SCORER_q2_n1,
-            SCORER_q2_a0;
+logic [7:0] SCORER_q2_a0,
+            SCORER_q2_a1;
 
 // For |scorer$q3.
-logic [7:0] SCORER_q3_n1,
-            SCORER_q3_a0;
+logic [7:0] SCORER_q3_a0,
+            SCORER_q3_a1;
 
 // For |scorer$q4.
-logic [7:0] SCORER_q4_n1,
-            SCORER_q4_a0;
+logic [7:0] SCORER_q4_a0,
+            SCORER_q4_a1;
 
 // For |scorer$q5.
-logic [7:0] SCORER_q5_n1,
-            SCORER_q5_a0;
+logic [7:0] SCORER_q5_a0,
+            SCORER_q5_a1;
 
 // For |scorer$q6.
-logic [7:0] SCORER_q6_n1,
-            SCORER_q6_a0;
+logic [7:0] SCORER_q6_a0,
+            SCORER_q6_a1;
 
 // For |scorer$q7.
-logic [7:0] SCORER_q7_n1,
-            SCORER_q7_a0;
+logic [7:0] SCORER_q7_a0,
+            SCORER_q7_a1;
 
-// For |scorer$q_idx.
-logic [2:0] SCORER_q_idx_a0;
+// For |scorer$q_complete.
+logic SCORER_q_complete_a1;
 
 // For |scorer$qfill.
-logic [3:0] SCORER_qfill_n1,
-            SCORER_qfill_a0;
+logic [3:0] SCORER_qfill_a0,
+            SCORER_qfill_a1;
 
-// For |scorer$qfill_next.
-logic [3:0] SCORER_qfill_next_a0;
+// For |scorer$qfill_nxt.
+logic [3:0] SCORER_qfill_nxt_a1;
 
 // For |scorer$qsel.
-logic [7:0] SCORER_qsel_a0;
+logic [7:0] SCORER_qsel_a1;
 
 // For |scorer$read_phase.
-logic [1:0] SCORER_read_phase_n1,
-            SCORER_read_phase_a0;
+logic [1:0] SCORER_read_phase_a0,
+            SCORER_read_phase_a1;
 
-// For |scorer$read_phase_next.
-logic [1:0] SCORER_read_phase_next_a0;
+// For |scorer$read_phase_nxt.
+logic [1:0] SCORER_read_phase_nxt_a1;
 
-// For |scorer$reset_acc_dim.
-logic SCORER_reset_acc_dim_a0;
+// For |scorer$sat_sum.
+logic [15:0] SCORER_sat_sum_a1;
+
+// For |scorer$sum_full.
+logic [16:0] SCORER_sum_full_a1;
+
+// For |scorer$wr_idx.
+logic [2:0] SCORER_wr_idx_a1;
 
 
 
@@ -171,135 +171,183 @@ logic SCORER_reset_acc_dim_a0;
    //
 
       // Staging of $acc.
-      always_ff @(posedge clk) SCORER_acc_a0[15:0] <= SCORER_acc_n1[15:0];
+      always_ff @(posedge clk) SCORER_acc_a1[15:0] <= SCORER_acc_a0[15:0];
 
       // Staging of $best.
-      always_ff @(posedge clk) SCORER_best_a0[15:0] <= SCORER_best_n1[15:0];
+      always_ff @(posedge clk) SCORER_best_a1[15:0] <= SCORER_best_a0[15:0];
 
       // Staging of $best_idx.
-      always_ff @(posedge clk) SCORER_best_idx_a0[5:0] <= SCORER_best_idx_n1[5:0];
+      always_ff @(posedge clk) SCORER_best_idx_a1[5:0] <= SCORER_best_idx_a0[5:0];
 
       // Staging of $dim.
-      always_ff @(posedge clk) SCORER_dim_a0[3:0] <= SCORER_dim_n1[3:0];
+      always_ff @(posedge clk) SCORER_dim_a1[2:0] <= SCORER_dim_a0[2:0];
 
       // Staging of $key_idx.
-      always_ff @(posedge clk) SCORER_key_idx_a0[5:0] <= SCORER_key_idx_n1[5:0];
+      always_ff @(posedge clk) SCORER_key_idx_a1[6:0] <= SCORER_key_idx_a0[6:0];
 
       // Staging of $out.
-      always_ff @(posedge clk) SCORER_out_a0[7:0] <= SCORER_out_n1[7:0];
+      always_ff @(posedge clk) SCORER_out_a1[7:0] <= SCORER_out_a0[7:0];
 
       // Staging of $q0.
-      always_ff @(posedge clk) SCORER_q0_a0[7:0] <= SCORER_q0_n1[7:0];
+      always_ff @(posedge clk) SCORER_q0_a1[7:0] <= SCORER_q0_a0[7:0];
 
       // Staging of $q1.
-      always_ff @(posedge clk) SCORER_q1_a0[7:0] <= SCORER_q1_n1[7:0];
+      always_ff @(posedge clk) SCORER_q1_a1[7:0] <= SCORER_q1_a0[7:0];
 
       // Staging of $q2.
-      always_ff @(posedge clk) SCORER_q2_a0[7:0] <= SCORER_q2_n1[7:0];
+      always_ff @(posedge clk) SCORER_q2_a1[7:0] <= SCORER_q2_a0[7:0];
 
       // Staging of $q3.
-      always_ff @(posedge clk) SCORER_q3_a0[7:0] <= SCORER_q3_n1[7:0];
+      always_ff @(posedge clk) SCORER_q3_a1[7:0] <= SCORER_q3_a0[7:0];
 
       // Staging of $q4.
-      always_ff @(posedge clk) SCORER_q4_a0[7:0] <= SCORER_q4_n1[7:0];
+      always_ff @(posedge clk) SCORER_q4_a1[7:0] <= SCORER_q4_a0[7:0];
 
       // Staging of $q5.
-      always_ff @(posedge clk) SCORER_q5_a0[7:0] <= SCORER_q5_n1[7:0];
+      always_ff @(posedge clk) SCORER_q5_a1[7:0] <= SCORER_q5_a0[7:0];
 
       // Staging of $q6.
-      always_ff @(posedge clk) SCORER_q6_a0[7:0] <= SCORER_q6_n1[7:0];
+      always_ff @(posedge clk) SCORER_q6_a1[7:0] <= SCORER_q6_a0[7:0];
 
       // Staging of $q7.
-      always_ff @(posedge clk) SCORER_q7_a0[7:0] <= SCORER_q7_n1[7:0];
+      always_ff @(posedge clk) SCORER_q7_a1[7:0] <= SCORER_q7_a0[7:0];
 
       // Staging of $qfill.
-      always_ff @(posedge clk) SCORER_qfill_a0[3:0] <= SCORER_qfill_n1[3:0];
+      always_ff @(posedge clk) SCORER_qfill_a1[3:0] <= SCORER_qfill_a0[3:0];
 
       // Staging of $read_phase.
-      always_ff @(posedge clk) SCORER_read_phase_a0[1:0] <= SCORER_read_phase_n1[1:0];
+      always_ff @(posedge clk) SCORER_read_phase_a1[1:0] <= SCORER_read_phase_a0[1:0];
 
 
 
 // ---------- Generated Code Ends ----------
 //_\TLV
    //_|scorer
-      //_@0
-         // Inputs
-         assign SCORER_cmd_a0[1:0]        = uio_in[1:0];
-         assign SCORER_data_a0[7:0]       = ui_in;
+      //_@1
+         assign SCORER_cmd_a1[1:0]  = uio_in[1:0];
+         assign SCORER_data_a1[7:0] = ui_in;
 
-         // Command decode
-         assign SCORER_is_idle_a0         = (SCORER_cmd_a0 == 2'b00);
-         assign SCORER_is_load_q_a0       = (SCORER_cmd_a0 == 2'b01);
-         assign SCORER_is_stream_k_a0     = (SCORER_cmd_a0 == 2'b10);
-         assign SCORER_is_read_a0         = (SCORER_cmd_a0 == 2'b11);
+         // Selected query element based on current dim
+         assign SCORER_qsel_a1[7:0] =
+            (SCORER_dim_a1[2:0] == 3'h0) ? SCORER_q0_a1 :
+            (SCORER_dim_a1[2:0] == 3'h1) ? SCORER_q1_a1 :
+            (SCORER_dim_a1[2:0] == 3'h2) ? SCORER_q2_a1 :
+            (SCORER_dim_a1[2:0] == 3'h3) ? SCORER_q3_a1 :
+            (SCORER_dim_a1[2:0] == 3'h4) ? SCORER_q4_a1 :
+            (SCORER_dim_a1[2:0] == 3'h5) ? SCORER_q5_a1 :
+            (SCORER_dim_a1[2:0] == 3'h6) ? SCORER_q6_a1 :
+                                  SCORER_q7_a1;
 
-         // Query buffer: 8 separate flops
-         assign SCORER_qsel_a0[7:0]       = (SCORER_dim_a0 == 0) ? SCORER_q0_a0 : (SCORER_dim_a0 == 1) ? SCORER_q1_a0 : (SCORER_dim_a0 == 2) ? SCORER_q2_a0 : (SCORER_dim_a0 == 3) ? SCORER_q3_a0 :
-                            (SCORER_dim_a0 == 4) ? SCORER_q4_a0 : (SCORER_dim_a0 == 5) ? SCORER_q5_a0 : (SCORER_dim_a0 == 6) ? SCORER_q6_a0 : SCORER_q7_a0;
-         assign SCORER_load_q_write_a0    = SCORER_is_load_q_a0;
-         assign SCORER_q_idx_a0[2:0]      = (SCORER_qfill_a0 >= 8) ? 3'b0 : SCORER_qfill_a0[2:0];
+         // Multiply (int8 x int8 -> int16) and saturating add
+         assign SCORER_prod_a1[15:0] = $signed(SCORER_qsel_a1[7:0]) * $signed(SCORER_data_a1[7:0]);
+         assign SCORER_sum_full_a1[16:0] = {SCORER_acc_a1[15], SCORER_acc_a1[15:0]} + {SCORER_prod_a1[15], SCORER_prod_a1[15:0]};
+         assign SCORER_sat_sum_a1[15:0] =
+            (SCORER_sum_full_a1[16:15] == 2'b01) ? 16'h7FFF :
+            (SCORER_sum_full_a1[16:15] == 2'b10) ? 16'h8000 :
+            SCORER_sum_full_a1[15:0];
 
-         // qfill (next state)
-         assign SCORER_qfill_next_a0[3:0] = reset ? 4'b0 :
-                            SCORER_is_load_q_a0 ? ((SCORER_qfill_a0 >= 8) ? 4'd1 : SCORER_qfill_a0 + 1'd1) :
-                            (SCORER_qfill_a0 < 8) ? 4'b0 : SCORER_qfill_a0;
+         // Conditions
+         assign SCORER_is_load_q_a1   = (SCORER_cmd_a1 == 2'h1);
+         assign SCORER_is_stream_k_a1 = (SCORER_cmd_a1 == 2'h2);
+         assign SCORER_is_idle_a1     = (SCORER_cmd_a1 == 2'h0);
+         assign SCORER_q_complete_a1  = (SCORER_qfill_a1[3:0] == 4'h8);
+         assign SCORER_key_in_range_a1 = (SCORER_key_idx_a1[6:0] <= 7'h3F);
 
-         // Query byte loading
-         assign SCORER_q0_n1[7:0]      = reset ? 8'b0 : (SCORER_load_q_write_a0 && SCORER_q_idx_a0 == 0) ? SCORER_data_a0 : SCORER_q0_a0;
-         assign SCORER_q1_n1[7:0]      = reset ? 8'b0 : (SCORER_load_q_write_a0 && SCORER_q_idx_a0 == 1) ? SCORER_data_a0 : SCORER_q1_a0;
-         assign SCORER_q2_n1[7:0]      = reset ? 8'b0 : (SCORER_load_q_write_a0 && SCORER_q_idx_a0 == 2) ? SCORER_data_a0 : SCORER_q2_a0;
-         assign SCORER_q3_n1[7:0]      = reset ? 8'b0 : (SCORER_load_q_write_a0 && SCORER_q_idx_a0 == 3) ? SCORER_data_a0 : SCORER_q3_a0;
-         assign SCORER_q4_n1[7:0]      = reset ? 8'b0 : (SCORER_load_q_write_a0 && SCORER_q_idx_a0 == 4) ? SCORER_data_a0 : SCORER_q4_a0;
-         assign SCORER_q5_n1[7:0]      = reset ? 8'b0 : (SCORER_load_q_write_a0 && SCORER_q_idx_a0 == 5) ? SCORER_data_a0 : SCORER_q5_a0;
-         assign SCORER_q6_n1[7:0]      = reset ? 8'b0 : (SCORER_load_q_write_a0 && SCORER_q_idx_a0 == 6) ? SCORER_data_a0 : SCORER_q6_a0;
-         assign SCORER_q7_n1[7:0]      = reset ? 8'b0 : (SCORER_load_q_write_a0 && SCORER_q_idx_a0 == 7) ? SCORER_data_a0 : SCORER_q7_a0;
-         assign SCORER_qfill_n1[3:0]   = SCORER_qfill_next_a0;
+         // For STREAM_K: accumulate if key index in range
+         assign SCORER_do_accumulate_a1 = SCORER_is_stream_k_a1 && SCORER_key_in_range_a1;
+         assign SCORER_dim_complete_a1  = (SCORER_dim_a1[2:0] == 3'h7);
+         assign SCORER_key_done_a1      = SCORER_do_accumulate_a1 && SCORER_dim_complete_a1;
+         assign SCORER_new_is_better_a1 = $signed(SCORER_sat_sum_a1) > $signed(SCORER_best_a1[15:0]);
 
-         // Load complete detection (resets best/idx/key_idx)
-         assign SCORER_load_complete_a0    = SCORER_is_load_q_a0 && (SCORER_qfill_a0 == 7);
+         // Write index for LOAD_Q
+         // When qfill==8, the next write restarts at index 0
+         assign SCORER_wr_idx_a1[2:0] = (SCORER_qfill_a1[3:0] == 4'h8) ? 3'h0 : SCORER_qfill_a1[2:0];
 
-         // Accumulator and dimension
-         assign SCORER_reset_acc_dim_a0   = SCORER_is_load_q_a0 || SCORER_is_idle_a0;
-         assign SCORER_inc_dim_a0         = SCORER_is_stream_k_a0 && (SCORER_key_idx_a0 <= 63);
-         assign SCORER_prod_a0[15:0]      = $signed(SCORER_qsel_a0) * $signed(SCORER_data_a0);
-         assign SCORER_acc_temp_a0[16:0]  = $signed(SCORER_acc_a0) + $signed(SCORER_prod_a0);
-         assign SCORER_acc_full_a0[15:0]  = (SCORER_acc_temp_a0[16:15] == 2'b01) ? 16'h7FFF :
-                            (SCORER_acc_temp_a0[16:15] == 2'b10) ? 16'h8000 : SCORER_acc_temp_a0[15:0];
-         assign SCORER_dim_next_a0[3:0]   = reset ? 4'b0 :
-                            (SCORER_reset_acc_dim_a0 || (SCORER_inc_dim_a0 && SCORER_dim_a0 == 7)) ? 4'b0 :
-                            SCORER_inc_dim_a0 ? SCORER_dim_a0 + 1'd1 : SCORER_dim_a0;
-         assign SCORER_acc_next_a0[15:0]  = reset ? 16'b0 :
-                            (SCORER_reset_acc_dim_a0 || (SCORER_inc_dim_a0 && SCORER_dim_a0 == 7)) ? 16'b0 :
-                            SCORER_inc_dim_a0 ? SCORER_acc_full_a0 : SCORER_acc_a0;
-         assign SCORER_dim_n1[3:0]     = SCORER_dim_next_a0;
-         assign SCORER_acc_n1[15:0]    = SCORER_acc_next_a0;
+         // Is this the 8th LOAD_Q byte completing the query?
+         // qfill goes 7->8 on this cycle
+         assign SCORER_completing_q_a1 = SCORER_is_load_q_a1 && (SCORER_qfill_a1[3:0] == 4'h7);
 
-         // Key index, best score, best index
-         assign SCORER_key_idx_next_a0[5:0] = reset ? 6'b0 :
-                              SCORER_load_complete_a0 ? 6'b0 :
-                              (SCORER_inc_dim_a0 && SCORER_dim_a0 == 7 && SCORER_key_idx_a0 <= 63) ? (SCORER_key_idx_a0 + 1'd1) : SCORER_key_idx_a0;
-         assign SCORER_best_next_a0[15:0]   = reset ? 16'h8000 : // -32768
-                              SCORER_load_complete_a0 ? 16'h8000 :
-                              (SCORER_inc_dim_a0 && SCORER_dim_a0 == 7 && SCORER_key_idx_a0 <= 63 && ($signed(SCORER_acc_full_a0) > $signed(SCORER_best_a0))) ? SCORER_acc_full_a0 : SCORER_best_a0;
-         assign SCORER_best_idx_next_a0[5:0] = reset ? 6'b0 :
-                               SCORER_load_complete_a0 ? 6'b0 :
-                               (SCORER_inc_dim_a0 && SCORER_dim_a0 == 7 && SCORER_key_idx_a0 <= 63 && ($signed(SCORER_acc_full_a0) > $signed(SCORER_best_a0))) ? SCORER_key_idx_a0 : SCORER_best_idx_a0;
-         assign SCORER_key_idx_n1[5:0]    = SCORER_key_idx_next_a0;
-         assign SCORER_best_n1[15:0]      = SCORER_best_next_a0;
-         assign SCORER_best_idx_n1[5:0]   = SCORER_best_idx_next_a0;
+         // Next qfill
+         // LOAD_Q: if qfill==8, restart at 1; else increment
+         // STREAM_K or IDLE: if partial query (qfill<8), reset to 0; else keep
+         assign SCORER_qfill_nxt_a1[3:0] =
+            SCORER_is_load_q_a1 ?
+               ((SCORER_qfill_a1 == 4'h8) ? 4'h1 : (SCORER_qfill_a1 + 4'h1)) :
+            (SCORER_is_stream_k_a1 || SCORER_is_idle_a1) ?
+               ((SCORER_qfill_a1 < 4'h8) ? 4'h0 : SCORER_qfill_a1) :
+            SCORER_qfill_a1;
 
-         // Read phase and output
-         assign SCORER_read_phase_next_a0[1:0] = reset ? 2'b0 :
-                                 SCORER_is_read_a0 ? ((SCORER_read_phase_a0 == 2) ? 2'b0 : SCORER_read_phase_a0 + 1'd1) : 2'b0;
-         assign SCORER_out_next_a0[7:0]        = reset ? 8'b0 :
-                                 SCORER_is_read_a0 ? ((SCORER_read_phase_a0 == 2'b00) ? SCORER_best_idx_a0[5:0] :
-                                             (SCORER_read_phase_a0 == 2'b01) ? SCORER_best_a0[15:8] : SCORER_best_a0[7:0]) : SCORER_out_a0;
-         assign SCORER_read_phase_n1[1:0]   = SCORER_read_phase_next_a0;
-         assign SCORER_out_n1[7:0]          = SCORER_out_next_a0;
+         // Next dim
+         // LOAD_Q or IDLE: reset dim to 0 (discard partial key)
+         // STREAM_K: if accumulating, increment; wrap on key_done
+         assign SCORER_dim_nxt_a1[2:0] =
+            (SCORER_is_load_q_a1 || SCORER_is_idle_a1) ? 3'h0 :
+            SCORER_do_accumulate_a1 ?
+               (SCORER_dim_complete_a1 ? 3'h0 : (SCORER_dim_a1 + 3'h1)) :
+            SCORER_dim_a1;
 
-         // Output assignment
-         assign uo_out = SCORER_out_a0;
+         // Next acc
+         // LOAD_Q or IDLE: reset acc to 0 (discard partial key)
+         // STREAM_K: if accumulating, use sat_sum; on key_done reset to 0
+         assign SCORER_acc_nxt_a1[15:0] =
+            (SCORER_is_load_q_a1 || SCORER_is_idle_a1) ? 16'h0000 :
+            SCORER_do_accumulate_a1 ?
+               (SCORER_dim_complete_a1 ? 16'h0000 : SCORER_sat_sum_a1) :
+            SCORER_acc_a1;
+
+         // Next best
+         // Completing query (8th LOAD_Q): reset to -32768
+         // Key done and new best: update
+         assign SCORER_best_nxt_a1[15:0] =
+            SCORER_completing_q_a1 ? 16'h8000 :
+            (SCORER_key_done_a1 && SCORER_new_is_better_a1) ? SCORER_sat_sum_a1 :
+            SCORER_best_a1;
+
+         // Next best_idx
+         assign SCORER_best_idx_nxt_a1[5:0] =
+            SCORER_completing_q_a1 ? 6'h00 :
+            (SCORER_key_done_a1 && SCORER_new_is_better_a1) ? SCORER_key_idx_a1[5:0] :
+            SCORER_best_idx_a1;
+
+         // Next key_idx
+         assign SCORER_key_idx_nxt_a1[6:0] =
+            SCORER_completing_q_a1 ? 7'h00 :
+            SCORER_key_done_a1 ? (SCORER_key_idx_a1 + 7'h01) :
+            SCORER_key_idx_a1;
+
+         // Next read_phase
+         assign SCORER_read_phase_nxt_a1[1:0] =
+            (SCORER_cmd_a1 == 2'h3) ?
+               (SCORER_read_phase_a1 == 2'h2 ? 2'h0 : SCORER_read_phase_a1 + 2'h1) :
+            2'h0;
+
+         // Next out
+         assign SCORER_out_nxt_a1[7:0] =
+            (SCORER_cmd_a1 == 2'h3) ?
+               ((SCORER_read_phase_a1 == 2'h0) ? {2'b00, SCORER_best_idx_a1[5:0]} :
+                (SCORER_read_phase_a1 == 2'h1) ? SCORER_best_a1[15:8] :
+                                        SCORER_best_a1[7:0]) :
+            SCORER_out_a1;
+
+         // Flopped state
+         assign SCORER_q0_a0[7:0]         = reset ? 8'h00 : (SCORER_is_load_q_a1 && SCORER_wr_idx_a1 == 3'h0) ? SCORER_data_a1 : SCORER_q0_a1;
+         assign SCORER_q1_a0[7:0]         = reset ? 8'h00 : (SCORER_is_load_q_a1 && SCORER_wr_idx_a1 == 3'h1) ? SCORER_data_a1 : SCORER_q1_a1;
+         assign SCORER_q2_a0[7:0]         = reset ? 8'h00 : (SCORER_is_load_q_a1 && SCORER_wr_idx_a1 == 3'h2) ? SCORER_data_a1 : SCORER_q2_a1;
+         assign SCORER_q3_a0[7:0]         = reset ? 8'h00 : (SCORER_is_load_q_a1 && SCORER_wr_idx_a1 == 3'h3) ? SCORER_data_a1 : SCORER_q3_a1;
+         assign SCORER_q4_a0[7:0]         = reset ? 8'h00 : (SCORER_is_load_q_a1 && SCORER_wr_idx_a1 == 3'h4) ? SCORER_data_a1 : SCORER_q4_a1;
+         assign SCORER_q5_a0[7:0]         = reset ? 8'h00 : (SCORER_is_load_q_a1 && SCORER_wr_idx_a1 == 3'h5) ? SCORER_data_a1 : SCORER_q5_a1;
+         assign SCORER_q6_a0[7:0]         = reset ? 8'h00 : (SCORER_is_load_q_a1 && SCORER_wr_idx_a1 == 3'h6) ? SCORER_data_a1 : SCORER_q6_a1;
+         assign SCORER_q7_a0[7:0]         = reset ? 8'h00 : (SCORER_is_load_q_a1 && SCORER_wr_idx_a1 == 3'h7) ? SCORER_data_a1 : SCORER_q7_a1;
+         assign SCORER_qfill_a0[3:0]      = reset ? 4'h0     : SCORER_qfill_nxt_a1;
+         assign SCORER_dim_a0[2:0]        = reset ? 3'h0     : SCORER_dim_nxt_a1;
+         assign SCORER_acc_a0[15:0]       = reset ? 16'h0000 : SCORER_acc_nxt_a1;
+         assign SCORER_best_a0[15:0]      = reset ? 16'h8000 : SCORER_best_nxt_a1;
+         assign SCORER_best_idx_a0[5:0]   = reset ? 6'h00    : SCORER_best_idx_nxt_a1;
+         assign SCORER_key_idx_a0[6:0]    = reset ? 7'h00    : SCORER_key_idx_nxt_a1;
+         assign SCORER_read_phase_a0[1:0] = reset ? 2'h0     : SCORER_read_phase_nxt_a1;
+         assign SCORER_out_a0[7:0]        = reset ? 8'h00    : SCORER_out_nxt_a1;
+
+         assign uo_out = SCORER_out_a1;
 //_\SV
    endmodule
 
