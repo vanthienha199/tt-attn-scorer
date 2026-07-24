@@ -13,9 +13,12 @@ in 8 cycles with almost no area.
 
 The design was written in TL-Verilog. The TL-Verilog source was produced by an LLM
 agent pipeline working from a byte-exact executable specification, and every candidate
-was gated by a deterministic harness: SandPiper compile, a 3410-cycle simulation
-compared byte-for-byte against the golden model, and a latch-free synthesis check.
-The design in this repository is the first candidate that passed all gates.
+was gated by a deterministic harness: SandPiper compile, simulation compared
+byte-for-byte against the golden model over 7968 cycles across two independently
+seeded vector sets, and a latch-free synthesis check. An earlier candidate passed the
+entire first vector set while still violating the 64-key limit; the second seed caught
+it, and the agent repaired the design through the same pipeline. That repaired design
+is what is in this repository.
 
 ## How to test
 
@@ -29,9 +32,9 @@ Commands are driven on `uio[1:0]` and sampled every rising clock edge:
 - `11` READ: `uo` rotates through {best index, score high byte, score low byte}.
 - `00` IDLE.
 
-The cocotb test in `test/` replays 3410 vectors covering saturation, ties, interrupted
-transactions, the 64-key limit, and mid-run resets, and checks every output byte
-against the pre-computed golden model output.
+The cocotb test in `test/` replays 7968 vectors covering saturation, ties, interrupted
+transactions, exact 64/65/66-key boundaries, read-interrupted streams, and mid-run
+resets, and checks every output byte against the pre-computed golden model output.
 
 ## External hardware
 
