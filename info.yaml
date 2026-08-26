@@ -5,7 +5,7 @@ project:
   discord:      ""
   description:  "Streaming int8 attention scoring primitive: dot-product a stored query against streamed keys, track the argmax"
   language:     "TL-Verilog"
-  clock_hz:     50000000
+  clock_hz:     40000000
 
   # How many tiles your design occupies? A single tile is about 167x108 uM.
   tiles: "1x1"
