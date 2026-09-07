@@ -22,20 +22,10 @@ module tb ();
   wire [7:0] uo_out;
   wire [7:0] uio_out;
   wire [7:0] uio_oe;
-`ifdef GL_TEST
-  wire VPWR = 1'b1;
-  wire VGND = 1'b0;
-`endif
 
-  // Replace tt_um_hale_attn_scorer with your module name:
+  // The IHP sg13g2 gate-level netlist has no power ports, so none are
+  // wired here (the sky130 template's VPWR/VGND hookup does not apply).
   tt_um_hale_attn_scorer user_project (
-
-      // Include power ports for the Gate Level test:
-`ifdef GL_TEST
-      .VPWR(VPWR),
-      .VGND(VGND),
-`endif
-
       .ui_in  (ui_in),    // Dedicated inputs
       .uo_out (uo_out),   // Dedicated outputs
       .uio_in (uio_in),   // IOs: Input path
