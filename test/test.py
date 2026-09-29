@@ -24,7 +24,7 @@ async def test_scorer_conformance(dut):
     expected = load_lines("expected.txt")
     assert len(vectors) == len(expected)
 
-    clock = Clock(dut.clk, 20, unit="ns")
+    clock = Clock(dut.clk, 25, unit="ns")
     cocotb.start_soon(clock.start())
 
     dut.ena.value = 1
